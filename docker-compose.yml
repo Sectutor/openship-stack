@@ -106,6 +106,13 @@ services:
       - "3001:3001"
     environment:
       NODE_ENV: production
+      # CRITICAL: Next.js binds the container-hostname-resolved IP (Docker sets
+      # HOSTNAME=container-id -> first network's IP, e.g. 172.21.0.5) instead
+      # of 0.0.0.0 when left unset. On multi-network boxes (AppVault connects
+      # the stack to its own net) the dashboard then answers ONLY on the
+      # compose network -> caddy launch URL 502 / host port dead while the
+      # docker healthcheck (which tests the API) stays green. Pin 0.0.0.0.
+      HOSTNAME: "0.0.0.0"
       PORT: "3001"
       INTERNAL_API_URL: http://api:4000
     depends_on:
