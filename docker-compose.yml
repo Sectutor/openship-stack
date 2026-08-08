@@ -113,9 +113,10 @@ services:
         condition: service_healthy
     # wget-based: the dashboard image ships NO curl, and the engine's stack
     # readiness probe falls back to the compose healthcheck when in-container
-    # curl is missing. No digit:digit sequences (old-agent remap safety).
+    # curl is missing. localhost (not 127.0.0.1) keeps digit:digit sequences
+    # out of the healthcheck (old-agent remap safety).
     healthcheck:
-      test: ["CMD", "wget", "-q", "-O", "/dev/null", "http://127.0.0.1:3001/"]
+      test: ["CMD", "wget", "-q", "-O", "/dev/null", "http://localhost:3001/"]
       interval: 10s
       timeout: 5s
       retries: 12
