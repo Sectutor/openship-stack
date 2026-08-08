@@ -111,12 +111,13 @@ services:
     depends_on:
       api:
         condition: service_healthy
-    # wget-based: the dashboard image ships NO curl, and the engine's stack
-    # readiness probe falls back to the compose healthcheck when in-container
-    # curl is missing. localhost (not 127.0.0.1) keeps digit:digit sequences
-    # out of the healthcheck (old-agent remap safety).
+    # node-based healthcheck against the api's DNS name: the dashboard image
+    # ships node but NO curl/bun, wget resolves localhost to ::1 (server is
+    # IPv4-only -> refused), and literal 127.0.0.1:PORT carries digit:digit
+    # sequences (old-agent remap corruption). api:4000 has none of those
+    # problems and the dashboard only starts after api is healthy anyway.
     healthcheck:
-      test: ["CMD", "wget", "-q", "-O", "/dev/null", "http://localhost:3001/"]
+      test: ["CMD", "node", "-e", "fetch('http://api:4000/api/health').then(r=>{if(r.ok){process.exit(0)}process.exit(1)}).catch(()=>process.exit(1))"]
       interval: 10s
       timeout: 5s
       retries: 12
