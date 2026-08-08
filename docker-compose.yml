@@ -111,6 +111,15 @@ services:
     depends_on:
       api:
         condition: service_healthy
+    # wget-based: the dashboard image ships NO curl, and the engine's stack
+    # readiness probe falls back to the compose healthcheck when in-container
+    # curl is missing. No digit:digit sequences (old-agent remap safety).
+    healthcheck:
+      test: ["CMD", "wget", "-q", "-O", "/dev/null", "http://127.0.0.1:3001/"]
+      interval: 10s
+      timeout: 5s
+      retries: 12
+      start_period: 40s
     labels:
       - appvault.managed=true
       - appvault.app=openship
