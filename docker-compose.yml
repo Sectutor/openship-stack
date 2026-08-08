@@ -89,7 +89,10 @@ services:
       redis:
         condition: service_healthy
     healthcheck:
-      test: ["CMD-SHELL", "bun -e \"fetch('http://127.0.0.1:4000/api/health').then(r=>process.exit(r.ok?0:1)).catch(()=>process.exit(1))\""]
+      # No digit:digit sequences (e.g. 127.0.0.1:4000 / r.ok?0:1) — old agent
+      # port-conflict remappers matched those globally and corrupted the
+      # healthcheck (OpenShip incident). localhost + if/else exit avoid it.
+      test: ["CMD-SHELL", "bun -e \"fetch('http://localhost:4000/api/health').then(r=>{if(r.ok){process.exit(0)}process.exit(1)}).catch(()=>process.exit(1))\""]
       interval: 10s
       timeout: 5s
       retries: 12
